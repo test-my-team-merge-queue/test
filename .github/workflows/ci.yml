@@ -18,6 +18,6 @@ jobs:
         with:
           persist-credentials: false
       - name: Wait for observation
-        run: sleep 180
+        run: sleep 60
       - name: Check combined configuration
         run: python3 -m unittest discover -s tests -v
