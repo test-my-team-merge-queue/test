@@ -1,0 +1,18 @@
+# Build settings verified with GitHub Merge Queue.
+# The trigger manages the service account, approvals, and branch filters.
+# Adding this file does not switch an existing inline trigger to this config.
+steps:
+  - name: python:3.12-slim
+    entrypoint: sh
+    args:
+      - -c
+      - |-
+        set -eu
+        printf "source_sha=%s\n" "$COMMIT_SHA"
+        python -m unittest discover -s tests -v
+timeout: 300s
+queueTtl: 600s
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_STANDARD_2
+  diskSizeGb: '100'
