@@ -1,7 +1,7 @@
 # Merge Queue 最小実験
 
-GitHub Actions + Python 標準ライブラリのみで「PR は個別に成功しても、組み合わせると失敗する」を試します。
-依存パッケージ、秘密情報、外部サービス、デプロイは不要です。
+Cloud Build + Python 標準ライブラリで「PR は個別に成功しても、組み合わせると失敗する」を試します。
+依存パッケージやデプロイは不要です。GitHub Actions の既存 workflow は無効化しています。
 
 ## 仕組み
 
@@ -21,7 +21,28 @@ GitHub Actions + Python 標準ライブラリのみで「PR は個別に成功�
 python3 -m unittest discover -s tests -v
 ```
 
-CI の必須チェック名は **compatibility**。
+## 現在の Cloud Build 検証範囲
+
+- 設定ファイルはリポジトリ直下の `cloudbuild.yaml` です。
+- 同じリポジトリの `codex/` で始まるブランチへの push と、
+  `gh-readonly-queue/main/` で始まる Merge Queue の一時ブランチへの push が対象です。
+- 外部 fork の PR、その他の作業ブランチ、main への直接 push は対象外です。
+  対象外の PR には必須チェックが出ないため、この限定環境ではマージできません。
+- PR の head と Queue の組合せ SHA に、同じ **merge-queue-test (sandbox-hi)** チェックを返します。
+- ビルドは承認待ちになり、Cloud Build 側で承認するまで実行されません。
+  承認前に対象 SHA、コード、`cloudbuild.yaml` の変更を確認してください。
+- 現在の設定は各5分、E2_STANDARD_2、ディスク100GB、Cloud Logging のみです。
+  設定ファイルの変更はこの制限も変えられます。実行回数や請求総額の厳密な上限ではありません。
+
+確認用 PR は open のまま内容とチェックを確認できます。Queue には自動投入しません。
+実際に Queue に投入すると、組合せ SHA に別のビルドが作成されます。
+そのビルドを承認して成功すると main へ自動マージされ得るため、投入・承認はマージしてよいと判断した場合だけ行います。
+
+以下は以前の GitHub Actions 実験の手順です。現在の Cloud Build 検証のために Actions を再有効化する必要はありません。
+
+## 以前の GitHub Actions 実験
+
+当時の CI の必須チェック名は **compatibility**。
 `pull_request`、`push`（main）、`merge_group: checks_requested` のすべてで同じジョブを実行します。
 checkout の ref を PR の head に固定しないため、キューでは GitHub が作った組み合わせのコミットを検査します。
 
